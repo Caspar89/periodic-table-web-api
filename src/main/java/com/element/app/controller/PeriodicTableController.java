@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class PeriodicTableController {
     @RequestMapping("/ping")
     public String ping() {
-        return "Periodic table controller is alive and kicking!";
+        return "Periodic table web api is alive and kicking!";
     }
 }
