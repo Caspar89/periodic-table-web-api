@@ -15,14 +15,6 @@ public class PeriodicTableController {
         return "Periodic table web api is alive and kicking!";
     }
 
-    @RequestMapping("/error")
-    public String error() {
-        return "Please try one of the following paths:" +
-                "\n /elements" +
-                "\n/elements/group/{group}" +
-                "\n /elements/period/{period}";
-    }
-
     @GetMapping("/elements")
     public ResponseEntity<Element> getAllElements() {
         return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
