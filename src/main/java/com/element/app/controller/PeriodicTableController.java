@@ -15,6 +15,7 @@ import java.util.List;
 // - Throw in service for server error, and element not found
 // - Catch in controller for 500 and 404
 // - Add tests for these cases
+// - Do a readme update for git push heroku master etc.
 // - Done
 
 @RestController
