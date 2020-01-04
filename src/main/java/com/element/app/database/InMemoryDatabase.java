@@ -1,6 +1,6 @@
 package com.element.app.database;
 
-import com.element.app.bean.Element;
+import com.element.app.domain.ElementEntity;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -10,9 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -24,55 +22,54 @@ import java.util.stream.Collectors;
 public class InMemoryDatabase {
     private Logger LOGGER = Logger.getLogger(InMemoryDatabase.class.getName());
 
-    private List<Element> elements;
+    private List<ElementEntity> elementEntities;
 
     public InMemoryDatabase() throws IOException, ParseException {
-        elements = getElements();
+        elementEntities = getElementEntities();
     }
 
-    public List<Element> getAll() {
-        return elements;
+    public List<ElementEntity> getAll() {
+        return elementEntities;
     }
 
-    public List<Element> getByGroup(Integer group) {
-        return elements.stream()
-                .filter(element -> element.getGroup().equals(group))
+    public List<ElementEntity> getByGroup(String group) {
+        return elementEntities.stream()
+                .filter(elementEntity -> elementEntity.getGroup().equals(group))
                 .collect(Collectors.toList());
     }
 
-    public List<Element> getByPeriod() {
-        return elements;
+    public List<ElementEntity> getByPeriod(String period) {
+        return elementEntities.stream()
+                .filter(elementEntity -> elementEntity.getPeriod().equals(period))
+                .collect(Collectors.toList());
     }
 
-    List<Element> getElements() throws IOException, ParseException {
-        int counter = 0;
+    List<ElementEntity> getElementEntities() throws IOException, ParseException {
         JSONParser parser = new JSONParser();
         ClassLoader classLoader = InMemoryDatabase.class.getClassLoader();
         JSONArray jsonArray = (JSONArray) parser.parse(new String(Files.readAllBytes(new File(Objects.requireNonNull(classLoader.getResource("periodic_table.json")).getFile()).toPath())));
 
-        List<Element> elements = new ArrayList<>();
+        List<ElementEntity> elementEntities = new ArrayList<>();
 
         for (Object jsonObject : jsonArray) {
             try {
-                Element element = new Element();
+                ElementEntity elementEntity = new ElementEntity();
                 JSONObject object = ((JSONObject) jsonObject);
-                element.setName(object.get("name").toString());
-                element.setAlternativeName(object.get("alternative_name").toString());
-                element.setGroup(getGroup(object.get("group_block").toString()));
-                element.setAppearance(object.get("appearance").toString());
-                element.setAtomicNumber(object.get("atomic_number").toString());
-                element.setDiscoveryYear(getYear(object.get("discovery").toString()));
-                element.setDiscoverers(getDiscoverers(element.getDiscoveryYear(), (object.get("discovery").toString())));
-                System.out.println(counter + ": " + element.getGroup());
-                element.setPeriod((object.get("period").toString()));
-                element.setAtomicSymbol((object.get("symbol").toString()));
-                elements.add(element);
-                counter++;
+                elementEntity.setName(object.get("name").toString());
+                elementEntity.setAlternativeName(object.get("alternative_name").toString());
+                elementEntity.setGroup(getGroup(object.get("group_block").toString()));
+                elementEntity.setAppearance(object.get("appearance").toString());
+                elementEntity.setAtomicNumber(object.get("atomic_number").toString());
+                elementEntity.setDiscoveryYear(getYear(object.get("discovery").toString()));
+                elementEntity.setDiscoverers(getDiscoverers(elementEntity.getDiscoveryYear(), (object.get("discovery").toString())));
+                elementEntity.setPeriod((object.get("period").toString()));
+                elementEntity.setAtomicSymbol((object.get("symbol").toString()));
+                elementEntities.add(elementEntity);
             } catch (Exception e) {
                 LOGGER.info("Could not parse element from json, skipping.");
             }
         }
-        return elements;
+        return elementEntities;
     }
 
     private String getYear(String unparsedYear) {
@@ -95,7 +92,11 @@ public class InMemoryDatabase {
         if (year.equals(discoverers) || discoverers.equals("n/a")) {
             return new String[0];
         }
-        return discoverers.replace(" (" + year + ")", "").replaceAll("\\([\\d\\sa-z,]+\\)", "").split(", | and ");
+        return discoverers
+                .replace(" (" + year + ")", "")
+                .replaceAll("\n", "and ")
+                .replaceAll("\\([\\d\\sa-z,]+\\)", "")
+                .split(", | and ");
     }
 
     private String getGroup(String group) {
