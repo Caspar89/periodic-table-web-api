@@ -50,26 +50,8 @@ public class InMemoryDatabase {
                 .collect(Collectors.toList());
     }
 
-    List<ElementEntity> getElementEntities() throws IOException, ParseException {
-        JSONParser parser = new JSONParser();
-        InputStream inputStream =
-                getClass().getClassLoader().getResourceAsStream("periodic_table.json");
-        StringBuilder textBuilder = new StringBuilder();
-        try (Reader reader = new BufferedReader(new InputStreamReader
-                (inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
-            int c = 0;
-            while ((c = reader.read()) != -1) {
-                textBuilder.append((char) c);
-            }
-        }
-
-        JSONArray jsonArray =
-                (JSONArray) parser.parse(textBuilder.toString());
-
-//        ClassLoader classLoader = InMemoryDatabase.class.getClassLoader();
-//        JSONArray jsonArray =
-//                (JSONArray) parser.parse(new String(Files.readAllBytes(new File(Objects.requireNonNull(classLoader.getResource("periodic_table.json")).getFile()).toPath())));
-
+    List<ElementEntity> getElementEntities() throws ParseException, IOException {
+        JSONArray jsonArray = readPeriodicTable();
         List<ElementEntity> elementEntities = new ArrayList<>();
         for (Object jsonObject : jsonArray) {
             try {
@@ -90,6 +72,21 @@ public class InMemoryDatabase {
             }
         }
         return elementEntities;
+    }
+
+    private JSONArray readPeriodicTable() throws ParseException, IOException {
+        JSONParser parser = new JSONParser();
+        InputStream inputStream =
+                getClass().getClassLoader().getResourceAsStream("periodic_table.json");
+        StringBuilder textBuilder = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader
+                (inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
+            int character;
+            while ((character = reader.read()) != -1) {
+                textBuilder.append((char) character);
+            }
+        }
+        return (JSONArray) parser.parse(textBuilder.toString());
     }
 
     private String getYear(String unparsedYear) {
