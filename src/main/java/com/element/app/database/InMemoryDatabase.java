@@ -7,8 +7,14 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Repository;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,11 +52,25 @@ public class InMemoryDatabase {
 
     List<ElementEntity> getElementEntities() throws IOException, ParseException {
         JSONParser parser = new JSONParser();
-        ClassLoader classLoader = InMemoryDatabase.class.getClassLoader();
-        JSONArray jsonArray = (JSONArray) parser.parse(new String(Files.readAllBytes(new File(Objects.requireNonNull(classLoader.getResource("periodic_table.json")).getFile()).toPath())));
+        InputStream inputStream =
+                getClass().getClassLoader().getResourceAsStream("periodic_table.json");
+        StringBuilder textBuilder = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader
+                (inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
+            int c = 0;
+            while ((c = reader.read()) != -1) {
+                textBuilder.append((char) c);
+            }
+        }
+
+        JSONArray jsonArray =
+                (JSONArray) parser.parse(textBuilder.toString());
+
+//        ClassLoader classLoader = InMemoryDatabase.class.getClassLoader();
+//        JSONArray jsonArray =
+//                (JSONArray) parser.parse(new String(Files.readAllBytes(new File(Objects.requireNonNull(classLoader.getResource("periodic_table.json")).getFile()).toPath())));
 
         List<ElementEntity> elementEntities = new ArrayList<>();
-
         for (Object jsonObject : jsonArray) {
             try {
                 ElementEntity elementEntity = new ElementEntity();
