@@ -1,6 +1,7 @@
 package com.element.app.controller;
 
 import com.element.app.bean.Element;
+import com.element.app.exception.ElementNotFoundException;
 import com.element.app.service.PeriodicTableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,35 +31,43 @@ public class PeriodicTableController {
 
     @GetMapping("/elements")
     public ResponseEntity<List<Element>> getAllElements() {
-        List<Element> elements = periodicTableService.getAllElements();
-        if (elements.size() == 0) {
-//            throw new ElementNotFoundException("Could not find any elements.");
-            return new ResponseEntity<>(elements, HttpStatus.NOT_FOUND);
+        try {
+            return new ResponseEntity<>(periodicTableService.getAllElements(), HttpStatus.OK);
+        } catch (ElementNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(elements, HttpStatus.OK);
     }
 
     @GetMapping("/elements/group/{group}")
     public ResponseEntity<List<Element>> getElementsByGroup(
         @PathVariable String group
     ) {
-        List<Element> elements = periodicTableService.getElementsByGroup(group);
-        if (elements.size() == 0) {
-//            throw new ElementNotFoundException("Could not find any elements in group " + group + ". Groups range from 1 to 18.");
-            return new ResponseEntity<>(elements, HttpStatus.NOT_FOUND);
+        try {
+            return new ResponseEntity<>(periodicTableService.getElementsByGroup(group), HttpStatus.OK);
+        } catch (ElementNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(elements, HttpStatus.OK);
     }
 
     @GetMapping("/elements/period/{period}")
     public ResponseEntity<List<Element>> getElementsByPeriod(
         @PathVariable String period
     ) {
-        List<Element> elements = periodicTableService.getElementsByPeriod(period);
-        if (elements.size() == 0) {
-//            throw new ElementNotFoundException("Could not find any elements in period " + period + ". Periods range from 1 to 8.");
-            return new ResponseEntity<>(elements, HttpStatus.NOT_FOUND);
+        try {
+            return new ResponseEntity<>(periodicTableService.getElementsByPeriod(period), HttpStatus.OK);
+        } catch (ElementNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(elements, HttpStatus.OK);
+    }
+
+    @GetMapping("/element/{atomicNumber}")
+    public ResponseEntity<Element> getElement(
+            @PathVariable String atomicNumber
+    ) {
+        try {
+            return new ResponseEntity<>(periodicTableService.getElement(atomicNumber), HttpStatus.OK);
+        } catch (ElementNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }

@@ -8,17 +8,15 @@ import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Repository;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,31 +28,37 @@ public class InMemoryDatabase {
 
     private List<ElementEntity> elementEntities;
 
-    public InMemoryDatabase() throws IOException, ParseException {
+    public InMemoryDatabase() {
         elementEntities = getElementEntities();
     }
 
-    public List<ElementEntity> getAll() {
+    public List<ElementEntity> getAllElements() {
         return elementEntities;
     }
 
-    public List<ElementEntity> getByGroup(String group) {
+    public List<ElementEntity> getElementsByGroup(String group) {
         return elementEntities.stream()
                 .filter(elementEntity -> elementEntity.getGroup().equals(group))
                 .collect(Collectors.toList());
     }
 
-    public List<ElementEntity> getByPeriod(String period) {
+    public List<ElementEntity> getElementsByPeriod(String period) {
         return elementEntities.stream()
                 .filter(elementEntity -> elementEntity.getPeriod().equals(period))
                 .collect(Collectors.toList());
     }
 
-    List<ElementEntity> getElementEntities() throws ParseException, IOException {
-        JSONArray jsonArray = readPeriodicTable();
+    public Optional<ElementEntity> getElement(String atomicNumber) {
+        return elementEntities.stream()
+                .filter(elementEntity -> elementEntity.getAtomicNumber().equals(atomicNumber))
+                .findFirst();
+    }
+
+    List<ElementEntity> getElementEntities() {
         List<ElementEntity> elementEntities = new ArrayList<>();
-        for (Object jsonObject : jsonArray) {
-            try {
+        try {
+            JSONArray jsonArray = readPeriodicTable();
+            for (Object jsonObject : jsonArray) {
                 ElementEntity elementEntity = new ElementEntity();
                 JSONObject object = ((JSONObject) jsonObject);
                 elementEntity.setName(object.get("name").toString());
@@ -67,9 +71,13 @@ public class InMemoryDatabase {
                 elementEntity.setPeriod((object.get("period").toString()));
                 elementEntity.setAtomicSymbol((object.get("symbol").toString()));
                 elementEntities.add(elementEntity);
-            } catch (Exception e) {
-                LOGGER.info("Could not parse element from json, skipping.");
             }
+        } catch (IOException exception) {
+            LOGGER.severe("Failed to read elements from json.");
+            exception.printStackTrace();
+        } catch (ParseException exception) {
+            LOGGER.severe("Failed to parse elements from json.");
+            exception.printStackTrace();
         }
         return elementEntities;
     }
@@ -81,9 +89,9 @@ public class InMemoryDatabase {
         StringBuilder textBuilder = new StringBuilder();
         try (Reader reader = new BufferedReader(new InputStreamReader
                 (inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
-            int character;
-            while ((character = reader.read()) != -1) {
-                textBuilder.append((char) character);
+            int characterIndex;
+            while ((characterIndex = reader.read()) != -1) {
+                textBuilder.append((char) characterIndex);
             }
         }
         return (JSONArray) parser.parse(textBuilder.toString());
