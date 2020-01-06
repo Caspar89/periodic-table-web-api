@@ -12,12 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-// TODO:
-// - Throw in service for server error, and element not found
-// - Catch in controller for 500 and 404
-// - Add tests for these cases
-// - Do a readme update for git push heroku master etc.
-// - Done
 
 @RestController
 public class PeriodicTableController {

@@ -5,6 +5,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Repository;
 
 import java.io.BufferedReader;
@@ -28,7 +31,10 @@ public class InMemoryDatabase {
 
     private List<ElementEntity> elementEntities;
 
-    public InMemoryDatabase() {
+    private String dataSource;
+
+    public InMemoryDatabase(@Value("${data}") String newDataSource) {
+        dataSource = newDataSource;
         elementEntities = getElementEntities();
     }
 
@@ -85,7 +91,7 @@ public class InMemoryDatabase {
     private JSONArray readPeriodicTable() throws ParseException, IOException {
         JSONParser parser = new JSONParser();
         InputStream inputStream =
-                getClass().getClassLoader().getResourceAsStream("periodic_table.json");
+                getClass().getClassLoader().getResourceAsStream(dataSource);
         StringBuilder textBuilder = new StringBuilder();
         try (Reader reader = new BufferedReader(new InputStreamReader
                 (inputStream, Charset.forName(StandardCharsets.UTF_8.name())))) {
